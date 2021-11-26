@@ -21,6 +21,23 @@ def acc_particle_calc(position_masses,position_particle,masses):
     return acceleration_particle 
 
 
+def acc_particles_calc(position_masses,position_particles,masses):
+
+  """Used to calculate the acceleration of the particles in a vectorised fashion, sums over the forces from each mass. More efficient for a large number of heavy masses(galaxies)."""
+
+  n_m=len(masses)
+  n_p=len(position_particles)
+
+  posp_temp=np.full((n_m,n_p,2),position_particles) #repeats position_particles n_m times 
+  posm_temp=np.repeat(position_masses,n_p,axis=0).reshape(n_m,n_p,2) #sets up masses for subtraction from the position of each particle
+
+  calc=-masses.reshape(n_m,1,1)*(posp_temp-posm_temp)/((np.linalg.norm(np.ndarray.flatten(posp_temp-posm_temp).reshape(n_p*n_m,2),axis=1).reshape(n_m,n_p))**3).reshape(n_m,n_p,1)
+  # calculates the contribution to the acceleration of each particle due to each mass, of form ([[[acc of particle 1 due to mass 1],[acc of particle 2 due to mass1 ]],[[acc of particle 1 due to mass 2],[acc of particle 2 due to mass2 ]]] etc.)
+  acceleration_particles=np.sum(calc,axis=0) #sums over all masses
+
+  return acceleration_particles
+
+
 def orbit_equations(t,q,n_m,n_p,masses):
 
     """ Returns the equations of the system, n_m heavy masses and n_p particles, masses inputted as an array,
